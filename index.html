@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot UFSM - Reconhecimento de Diploma</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #005386 0%, #003151 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .chatbot-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #005386 0%, #003151 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .logo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .graduation-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e0e0e0;
+            margin: 0 30px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #005386, #0066a3);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .chat-area {
+            padding: 30px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 20px;
+            animation: slideIn 0.5s ease;
+        }
+
+        .message.hidden {
+            display: none;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #005386, #0066a3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 15px;
+            border-top-left-radius: 5px;
+            max-width: 85%;
+            line-height: 1.6;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-top-left-radius: 5px;
+            margin-left: 55px;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #005386;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(23, 162, 184, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .search-container {
+            margin: 15px 0;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #005386;
+        }
+
+        .institution-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .institution-item {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .institution-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .institution-item.selected {
+            background-color: #e3f2fd;
+            border-left: 4px solid #005386;
+        }
+
+        .institution-item:last-child {
+            border-bottom: none;
+        }
+
+        .institution-info {
+            flex-grow: 1;
+        }
+
+        .institution-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .institution-country {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-deferida {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-indeferida {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-cancelada {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .document-list {
+            margin: 20px 0;
+        }
+
+        .document-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #005386;
+            transition: all 0.3s ease;
+        }
+
+        .document-item:hover {
+            background: #e9ecef;
+        }
+
+        .document-checkbox {
+            margin-right: 12px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .document-text {
+            flex-grow: 1;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .document-counter {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 10px;
+            font-weight: 600;
+            color: #005386;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .warning-icon {
+            color: #856404;
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        .warning-text {
+            color: #856404;
+            font-size: 14px;
+        }
+
+        .info-box {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .info-icon {
+            color: #0c5460;
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        .info-text {
+            color: #0c5460;
+            font-size: 14px;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .error-icon {
+            color: #721c24;
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .error-title {
+            color: #721c24;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .error-text {
+            color: #721c24;
+            margin-bottom: 15px;
+        }
+
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .success-icon {
+            color: #155724;
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .success-title {
+            color: #155724;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .success-text {
+            color: #155724;
+            margin-bottom: 15px;
+        }
+
+        .link-button {
+            display: inline-block;
+            margin: 5px;
+            padding: 10px 20px;
+            background: #005386;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+
+        .link-button:hover {
+            background: #003151;
+        }
+
+        .not-found-button {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+            color: white;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .not-found-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .chatbot-container {
+                border-radius: 15px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .chat-area {
+                padding: 20px;
+            }
+
+            .message-content {
+                max-width: 90%;
+            }
+
+            .btn {
+                padding: 10px 20px;
+                font-size: 13px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chatbot-container">
+        <div class="header">
+            <div class="logo">UFSM</div>
+            <div class="graduation-icon">🎓</div>
+            <h1>Assistente UFSM</h1>
+            <p>Reconhecimento de Diploma</p>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+
+        <div class="chat-area" id="chatArea">
+            <!-- Step 0: Initial Welcome -->
+            <div class="message" id="step0">
+                <div class="avatar">🤖</div>
+                <div class="message-content">
+                    Olá! Sou seu assistente virtual para o processo de reconhecimento de diploma na UFSM. Vou te guiar através de todas as etapas necessárias.
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="startChat()">Iniciar Consulta</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 1: Equivalent Course -->
+            <div class="message hidden" id="step1">
+                <div class="avatar">🤖</div>
+                <div class="message-content">
+                    Perfeito! Agora preciso saber: existe um curso equivalente na UFSM para o seu diploma?
+                    <div class="info-box">
+                        <span class="info-icon">📋</span>
+                        <span class="info-text">A lista de cursos oferecidos pela UFSM está disponível no edital na Tabela 1. Consulte o documento para verificar se existe um curso equivalente ao seu.</span>
+                    </div>
+                    <div class="button-group">
+                        <a href="https://www.ufsm.br/app/uploads/sites/345/2026/01/EDITAL-N.-03.2026-Reconhecimento.pdf" target="_blank" class="btn btn-info">Consultar Edital UFSM</a>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="handleEquivalentCourse('yes')">Sim</button>
+                        <button class="btn btn-secondary" onclick="handleEquivalentCourse('no')">Não</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Presential Course -->
+            <div class="message hidden" id="step2">
+                <div class="avatar">🤖</div>
+                <div class="message-content">
+                    Ótimo! O seu curso foi realizado de forma presencial? Cursos em regime semi-presencial, à distância, modular, de forma sazonal ou intensivo não são reconhecidos pela UFSM.
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="handlePresentialCourse('yes')">Sim</button>
+                        <button class="btn btn-secondary" onclick="handlePresentialCourse('no')">Não</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Institution Search -->
+            <div class="message hidden" id="step3">
+                <div class="avatar">🤖</div>
+                <div class="message-content">
+                    Excelente! Agora você pode consultar nossa base de dados para verificar se sua instituição e curso já tiveram processos de reconhecimento anteriores. Selecione uma instituição da lista abaixo:
+                    <div class="search-container">
+                        <input type="text" id="institutionSearch" class="search-input" placeholder="Buscar instituição..." oninput="loadInstitutions()">
+                    </div>
+                    <div class="institution-list" id="institutionList">
+                        <!-- Institutions will be loaded here by JavaScript -->
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" id="selectInstitutionBtn" onclick="handleInstitutionSelection()" disabled>Prosseguir com Seleção</button>
+                        <button class="btn not-found-button" onclick="handleInstitutionNotFound()">Minha instituição não está aqui</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Document Checklist -->
+            <div class="message hidden" id="step4">
+                <div class="avatar">🤖</div>
+                <div class="message-content">
+                    Agora vamos verificar sua documentação. Marque os documentos que você já possui:
+                    <div class="info-box">
+                        <span class="info-icon">ℹ️</span>
+                        <span class="info-text">Todos os documentos são importantes, mas você pode prosseguir mesmo que não tenha todos ainda. Esta é apenas uma verificação para te orientar.</span>
+                    </div>
+                    <div class="document-list" id="documentList">
+                        <!-- Documents will be loaded here by JavaScript -->
+                    </div>
+                    <div class="document-counter" id="documentCounter">0 de 15 documentos marcados</div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" id="continueDocumentsBtn" onclick="handleDocumentCheck()">Continuar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Apostille -->
+            <div class="message hidden" id="step5">
+                <div class="avatar">🤖</div>
+                <div class="message-content">
+                    Ótimo! Lembramos que para sua solicitação ser analisada é necessário possuir todos os documentos obrigatórios. Agora preciso saber: seus documentos estão apostilados conforme a Convenção de Haia?
+                    <div class="warning-box">
+                        <span class="warning-icon">⚠️</span>
+                        <span class="warning-text">Atenção: Os documentos que OBRIGATORIAMENTE precisam estar apostilados são: ATA de defesa, Histórico Escolar e Diploma.</span>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="handleApostille('yes')">Sim</button>
+                        <button class="btn btn-secondary" onclick="handleApostille('no')">Não</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Final Messages -->
+            <div class="message hidden" id="finalSuccess">
+                <div class="avatar">🎉</div>
+                <div class="message-content success-message">
+                    <div class="success-icon">✅</div>
+                    <div class="success-title">Parabéns! Você está pronto para iniciar seu processo!</div>
+                    <div class="success-text">
+                        Com base nas suas respostas, você atende aos requisitos iniciais para o reconhecimento de diploma na UFSM.
+                        Você pode iniciar seu processo na Plataforma Carolina Bori e consultar os editais para mais informações.
+                    </div>
+                    <a href="https://carolinabori.mec.gov.br/" target="_blank" class="link-button">Acessar Plataforma Carolina Bori</a>
+                    <a href="https://www.ufsm.br/pro-reitorias/prpgp/reconhecimento-de-diplomas" target="_blank" class="link-button">Acessar Editais UFSM</a>
+                    <div class="button-group">
+                        <button class="btn btn-info" onclick="restartChat()">Nova Consulta</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="message hidden" id="finalNoEquivalentCourse">
+                <div class="avatar">❌</div>
+                <div class="message-content error-message">
+                    <div class="error-icon">❌</div>
+                    <div class="error-title">Não é possível prosseguir no momento.</div>
+                    <div class="error-text">
+                        Para o reconhecimento de diploma na UFSM, é necessário que exista um curso equivalente em nossa instituição. Recomendamos que você verifique outras Instituições que possuem curso equivalente ao que você realizou no exterior para prosseguir com a solicitação.
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-info" onclick="restartChat()">Nova Consulta</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="message hidden" id="finalNoPresentialCourse">
+                <div class="avatar">❌</div>
+                <div class="message-content error-message">
+                    <div class="error-icon">❌</div>
+                    <div class="error-title">Não é possível prosseguir no momento.</div>
+                    <div class="error-text">
+                        O reconhecimento de diploma na UFSM é aplicável apenas a cursos realizados de forma presencial.
+                        Diplomas de cursos a distância ou semipresenciais não são elegíveis para este processo.
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-info" onclick="restartChat()">Nova Consulta</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="message hidden" id="finalNoApostille">
+                <div class="avatar">⚠️</div>
+                <div class="message-content warning-box">
+                    <div class="warning-icon">⚠️</div>
+                    <div class="warning-title">Atenção Necessária</div>
+                    <div class="warning-text">
+                        Para prosseguir com o reconhecimento na UFSM, é obrigatório que seus documentos (Diploma, Histórico e Ata de Defesa) estejam apostilados conforme a Convenção de Haia ou legalizados pelo consulado competente. Por favor, providencie o apostilamento antes de iniciar o processo na Plataforma Carolina Bori.
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-info" onclick="restartChat()">Nova Consulta</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="message hidden" id="finalInstitutionDenied">
+                <div class="avatar">❌</div>
+                <div class="message-content error-message">
+                    <div class="error-icon">❌</div>
+                    <div class="error-title">Instituição com Histórico de Indeferimento</div>
+                    <div class="error-text">
+                        A instituição selecionada possui histórico de processos indeferidos ou cancelados na UFSM. Isso pode indicar que o curso não atende aos critérios de equivalência exigidos pela nossa instituição. Recomendamos a leitura atenta do edital.
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-info" onclick="restartChat()">Nova Consulta</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        let selectedInstitution = null;
+
+        const institutionData = [
+            // Instituições Deferidas
+            {"name": "Universidad Nacional de La Plata", "country": "Argentina", "status": "DEFERIDA"},
+            {"name": "Katholieke Universiteit Leuven", "country": "Bélgica", "status": "DEFERIDA"},
+            {"name": "Universidad de Antioquia", "country": "Colômbia", "status": "DEFERIDA"},
+            {"name": "Universidad de Granada", "country": "Espanha", "status": "DEFERIDA"},
+            {"name": "Universidad de Leon", "country": "Espanha", "status": "DEFERIDA"},
+            {"name": "Universidad de Navarra", "country": "Espanha", "status": "DEFERIDA"},
+            {"name": "Universidade de Vigo", "country": "Espanha", "status": "DEFERIDA"},
+            {"name": "University of California, Davis", "country": "EUA", "status": "DEFERIDA"},
+            {"name": "University of Oklahoma", "country": "EUA", "status": "DEFERIDA"},
+            {"name": "Université Grenoble Alpes", "country": "França", "status": "DEFERIDA"},
+            {"name": "Wageningen University", "country": "Holanda", "status": "DEFERIDA"},
+            {"name": "Universidade de Limerick", "country": "Irlanda", "status": "DEFERIDA"},
+            {"name": "University of Otago", "country": "Nova Zelândia", "status": "DEFERIDA"},
+            {"name": "Universidade de Lisboa", "country": "Portugal", "status": "DEFERIDA"},
+            {"name": "ISCTE", "country": "Portugal", "status": "DEFERIDA"},
+            {"name": "Universidade da Beira Interior", "country": "Portugal", "status": "DEFERIDA"},
+            {"name": "Universidade de Aveiro", "country": "Portugal", "status": "DEFERIDA"},
+            {"name": "Universidade de Évora", "country": "Portugal", "status": "DEFERIDA"},
+            {"name": "Universidade do Minho", "country": "Portugal", "status": "DEFERIDA"},
+            {"name": "Universidad de La Empresa", "country": "Uruguai", "status": "DEFERIDA"},
+            
+            // Instituições Indeferidas
+            {"name": "Hochschule Osnabrück", "country": "Alemanha", "status": "INDEFERIDA"},
+            {"name": "RWTH Aachen University", "country": "Alemanha", "status": "INDEFERIDA"},
+            {"name": "Escola Superior de Economia e Administração de Empresas", "country": "Argentina", "status": "INDEFERIDA"},
+            {"name": "Universidad de Ciencias Empresariales Y Sociales", "country": "Argentina", "status": "INDEFERIDA"},
+            {"name": "Universidad Nacional de Misiones", "country": "Argentina", "status": "INDEFERIDA"},
+            {"name": "Universidad Nacional de Tres de Febrero", "country": "Argentina", "status": "INDEFERIDA"},
+            {"name": "Universidad Tecnologica Nacional", "country": "Argentina", "status": "INDEFERIDA"},
+            {"name": "Universidade John Kennedy", "country": "Argentina", "status": "INDEFERIDA"},
+            {"name": "Universidad Nur", "country": "Canadá", "status": "INDEFERIDA"},
+            {"name": "FUNIBER", "country": "Espanha", "status": "INDEFERIDA"},
+            {"name": "Universidad de Jaén", "country": "Espanha", "status": "INDEFERIDA"},
+            {"name": "Universidad Europea del Atlantico", "country": "Espanha", "status": "INDEFERIDA"},
+            {"name": "Universidad Internacional Isabel I", "country": "Espanha", "status": "INDEFERIDA"},
+            {"name": "Universidad Pontifica de Salamanca", "country": "Espanha", "status": "INDEFERIDA"},
+            {"name": "Universitat Pompeu Fabra", "country": "Espanha", "status": "INDEFERIDA"},
+            {"name": "Absolute Christian University", "country": "EUA", "status": "INDEFERIDA"},
+            {"name": "Florida University – USA (FUUSA)", "country": "EUA", "status": "INDEFERIDA"},
+            {"name": "Emil Brunner World University (EBWU)", "country": "EUA", "status": "INDEFERIDA"},
+            {"name": "Veni Creator Christian University", "country": "EUA", "status": "INDEFERIDA"},
+            {"name": "Ivy Enber Christian University", "country": "EUA", "status": "INDEFERIDA"},
+            {"name": "São Luiz University", "country": "EUA", "status": "INDEFERIDA"},
+            {"name": "Institut D'Économie Scientifique et de Gestion", "country": "França", "status": "INDEFERIDA"},
+            {"name": "Faculdad Interamericana de Ciencias Sociales", "country": "Paraguai", "status": "INDEFERIDA"},
+            {"name": "Universidad Autónoma de Asunción", "country": "Paraguai", "status": "INDEFERIDA"},
+            {"name": "Universidad de La Integracion de Las Americas", "country": "Paraguai", "status": "INDEFERIDA"},
+            {"name": "Universidad Gran Asunción", "country": "Paraguai", "status": "INDEFERIDA"},
+            {"name": "Universidad Interamericana", "country": "Paraguai", "status": "INDEFERIDA"},
+            {"name": "Universidad Internacional Tres Fronteras", "country": "Paraguai", "status": "INDEFERIDA"},
+            {"name": "Universidad Politecnica Y Artistica del Paraguay", "country": "Paraguai", "status": "INDEFERIDA"},
+            {"name": "Universidad Tecnológica Intercontinental", "country": "Paraguai", "status": "INDEFERIDA"},
+            {"name": "Universidade Autonoma de Asunción", "country": "Paraguai", "status": "INDEFERIDA"},
+            {"name": "Universidad del Sol (Unades)", "country": "Paraguai", "status": "INDEFERIDA"},
+            {"name": "Universidade Internacional Iberoamericana", "country": "Porto Rico", "status": "INDEFERIDA"},
+            {"name": "Instituto Superior de Contabilidade e Administração do Porto", "country": "Portugal", "status": "INDEFERIDA"},
+            {"name": "Universidade Catolica Portuguesa", "country": "Portugal", "status": "INDEFERIDA"},
+            {"name": "Universidade de Coimbra", "country": "Portugal", "status": "INDEFERIDA"},
+            {"name": "Universidade do Porto", "country": "Portugal", "status": "INDEFERIDA"},
+            {"name": "Universidade Fernando Pessoa", "country": "Portugal", "status": "INDEFERIDA"},
+            {"name": "Universidade Lusófona do Porto", "country": "Portugal", "status": "INDEFERIDA"},
+            {"name": "Brunel University London", "country": "Reino Unido", "status": "INDEFERIDA"},
+            {"name": "University of Reading", "country": "Reino Unido", "status": "INDEFERIDA"},
+            {"name": "Faculdade de Teologia e Filosofia Fides Reformata (Fateffir)", "country": "Brasil", "status": "INDEFERIDA"},
+            {"name": "Unifateffir", "country": "Brasil", "status": "INDEFERIDA"}
+        ];
+
+        const documents = [
+            { text: "Requerimento específico e padrão dirigido ao Reitor da UFSM (Anexo 1) e Cadastro contendo os dados pessoais" },
+            { text: "Documento de identidade do requerente" },
+            { text: "Cópia do diploma devidamente registrado (apostilado)" },
+            { text: "Cópia eletrônica da dissertação ou tese, em formato .pdf" },
+            { text: "Ata ou documento de defesa oficial da instituição de origem (apostilada)" },
+            { text: "Nomes dos participantes da banca examinadora e do(a) orientador(a) e respectivos currículos resumidos" },
+            { text: "Cópia do histórico escolar completo (apostilado)" },
+            { text: "Descrição das atividades de pesquisa realizadas durante o curso" },
+            { text: "Curriculum no formato Lattes ou Curriculum vitae" },
+            { text: "Avaliação externa do curso ou programa de pós-graduação da instituição, quando houver" },
+            { text: "Licença de afastamento ou comprovação de trabalho remoto, se servidor ou empregado público" },
+            { text: "Documentos de permanência no exterior" },
+            { text: "Certidão de Movimentos Migratórios (documento expedido pela Polícia Federal)" },
+            { text: "Diploma de graduação" },
+            { text: "Acreditação da instituição de ensino estrangeira" },
+            { text: "Declaração que não há processo de reconhecimento aberto em outra instituição (Anexo 2)" }
+        ];
+
+        function showStep(stepId) {
+            const targetStep = document.getElementById(stepId);
+            if (targetStep) {
+                targetStep.classList.remove('hidden');
+                document.getElementById('chatArea').scrollTop = document.getElementById('chatArea').scrollHeight;
+            }
+            updateProgressBar();
+        }
+
+        function updateProgressBar() {
+            const totalSteps = 5;
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        function startChat() {
+            currentStep = 1;
+            showStep('step1');
+        }
+
+        function handleEquivalentCourse(response) {
+            if (response === 'yes') {
+                currentStep = 2;
+                showStep('step2');
+            } else {
+                showStep('finalNoEquivalentCourse');
+            }
+        }
+
+        function handlePresentialCourse(response) {
+            if (response === 'yes') {
+                currentStep = 3;
+                showStep('step3');
+                loadInstitutions();
+            } else {
+                showStep('finalNoPresentialCourse');
+            }
+        }
+
+        function loadInstitutions() {
+            const institutionListDiv = document.getElementById('institutionList');
+            institutionListDiv.innerHTML = '';
+            const searchInput = document.getElementById('institutionSearch');
+            const searchTerm = searchInput.value.toLowerCase();
+
+            const filteredInstitutions = institutionData.filter(inst => 
+                inst.name.toLowerCase().includes(searchTerm) || 
+                inst.country.toLowerCase().includes(searchTerm)
+            ).sort((a, b) => a.name.localeCompare(b.name));
+
+            filteredInstitutions.forEach(inst => {
+                const item = document.createElement('div');
+                item.classList.add('institution-item');
+                item.dataset.name = inst.name;
+                item.dataset.status = inst.status;
+                item.onclick = () => selectInstitution(item);
+
+                let statusClass = '';
+                if (inst.status === 'DEFERIDA') {
+                    statusClass = 'status-deferida';
+                } else if (inst.status === 'INDEFERIDA') {
+                    statusClass = 'status-indeferida';
+                } else if (inst.status === 'CANCELADA') {
+                    statusClass = 'status-cancelada';
+                }
+
+                item.innerHTML = `
+                    <div class="institution-info">
+                        <div class="institution-name">${inst.name}</div>
+                        <div class="institution-country">${inst.country}</div>
+                    </div>
+                    <span class="status-badge ${statusClass}">${inst.status}</span>
+                `;
+                institutionListDiv.appendChild(item);
+            });
+        }
+
+        function selectInstitution(item) {
+            const allItems = document.querySelectorAll('.institution-item');
+            allItems.forEach(i => i.classList.remove('selected'));
+            item.classList.add('selected');
+            selectedInstitution = { name: item.dataset.name, status: item.dataset.status };
+            document.getElementById('selectInstitutionBtn').disabled = false;
+        }
+
+        function handleInstitutionSelection() {
+            if (selectedInstitution.status === 'INDEFERIDA' || selectedInstitution.status === 'CANCELADA') {
+                showStep('finalInstitutionDenied');
+            } else {
+                currentStep = 4;
+                showStep('step4');
+                loadDocuments();
+            }
+        }
+
+        function handleInstitutionNotFound() {
+            currentStep = 4;
+            showStep('step4');
+            loadDocuments();
+        }
+
+        function loadDocuments() {
+            const documentListDiv = document.getElementById('documentList');
+            documentListDiv.innerHTML = '';
+            documents.forEach((doc, index) => {
+                const item = document.createElement('div');
+                item.classList.add('document-item');
+                item.innerHTML = `
+                    <input type="checkbox" class="document-checkbox" onchange="updateDocumentCounter()">
+                    <span class="document-text">${doc.text}</span>
+                `;
+                documentListDiv.appendChild(item);
+            });
+            updateDocumentCounter();
+        }
+
+        function updateDocumentCounter() {
+            const checkedCount = document.querySelectorAll('.document-checkbox:checked').length;
+            document.getElementById('documentCounter').innerText = `${checkedCount} de ${documents.length} documentos marcados`;
+        }
+
+        function handleDocumentCheck() {
+            currentStep = 5;
+            showStep('step5');
+        }
+
+        function handleApostille(response) {
+            if (response === 'yes') {
+                showStep('finalSuccess');
+            } else {
+                showStep('finalNoApostille');
+            }
+        }
+
+        function restartChat() {
+            currentStep = 0;
+            selectedInstitution = null;
+            const steps = ['step1', 'step2', 'step3', 'step4', 'step5', 'finalSuccess', 'finalNoEquivalentCourse', 'finalNoPresentialCourse', 'finalNoApostille', 'finalInstitutionDenied'];
+            steps.forEach(step => {
+                const el = document.getElementById(step);
+                if (el) el.classList.add('hidden');
+            });
+            document.getElementById('institutionSearch').value = '';
+            document.getElementById('selectInstitutionBtn').disabled = true;
+            updateProgressBar();
+        }
+    </script>
+</body>
+</html>
